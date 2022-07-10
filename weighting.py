@@ -2,17 +2,19 @@
 All weighting functions are of the following basic form:
     Args:
         frames: `int` | number of frames to generate
-    
+
     Returns:
         `list[float]`: `[w1, w2, ..., wn]` | weights for each frame
 
 Reference:
     https://github.com/siveroo/HFR-Resampler
 """
+
 import math
 import warnings as w
 from numbers import Number
 from typing import Sequence
+
 
 Vector = Sequence[Number]
 """
@@ -23,7 +25,10 @@ Has to support:
 """
 
 
-def scale_weights(weights: list):
+def normalize(weights: list):
+    """
+    Normalize a list of weights to sum to 1
+    """
     tot = sum(weights)
     return [weight / tot for weight in weights]
 
@@ -38,25 +43,34 @@ def scale_range(n: int, start: Number, end: Number):
 
 
 def ascending(frames: int):
+    """
+    Linear ascending curve
+    """
     val = [x for x in range(1, frames + 1)]
-    return scale_weights(val)
+    return normalize(val)
 
 
 def descending(frames: int):
+    """
+    Linear descending curve
+    """
     val = [x for x in range(frames, 0, -1)]
-    return scale_weights(val)
+    return normalize(val)
 
 
 def equal(frames: int):
+    """
+    Flat curve
+    """
     return [1 / frames] * frames
 
 
-def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple = (0, 2)):
+def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
     """
     Args:
         bound: `[a, b]` | x axis vector from `a` to `b`
         apex: `μ`       | the position of the center of the peak, relative to x axis vector
-        std_dev: `σ`    | width of the curve, higher == broader / flatter
+        std_dev: `σ`    | width of the "bell", higher == broader / flatter
 
     Reference:
         https://en.wikipedia.org/wiki/Gaussian_function
@@ -69,10 +83,10 @@ def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple = 
            * math.exp(-((x - apex) / std_dev) ** 2 / 2) # gaussian function
            for x in r]
 
-    return scale_weights(val)
+    return normalize(val)
 
 
-def gaussian_sym(frames: int, std_dev: Number = 1, bound: tuple = (0, 2)):
+def gaussian_sym(frames: int, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
     """
     Same as `gaussian()` but symmetric;
     the peak (apex) will always be at the center of the curve
@@ -86,7 +100,7 @@ def gaussian_sym(frames: int, std_dev: Number = 1, bound: tuple = (0, 2)):
            * math.exp(-(x / std_dev) ** 2 / 2)
            for x in r]
 
-    return scale_weights(val)
+    return normalize(val)
 
 
 def pyramid(frames: int):
@@ -96,49 +110,41 @@ def pyramid(frames: int):
     half = (frames - 1) / 2
     val = [half - abs(x - half) + 1 for x in range(frames)]
 
-    return scale_weights(val)
-
-
-
+    return normalize(val)
 
 
 def func_eval(func: str, nums: Vector):
     """
     Run an operation on a sequence of numbers
-    
-    `func`is evaluated safely, see reference
-    
-    Reference:
-        https://realpython.com/python-eval-function/#math-expressions
+
+    Names allowed in `func`:
+        - Everything in the `math` module
+        - `x`: the current number (frame) in the sequence
+        - `frames` (`len(nums)`): number of elements in the sequence (blended frames)
+        - The following built-in functions: `sum`, `abs`, `max`, `min`, `len`, `pow`, `range`, `round`
     """
 
     # math functions + math related builtins
     namespace = {k:v for k, v in math.__dict__.items() if not k.startswith("_")}
-    namespace |= {'frames': len(nums), # total number of items (frames)
-                  'x': None, # iterator for nums
-                    '__builtins__': {
-                    'sum'   : sum,
-                    'abs'   : abs,
-                    'max'   : max,
-                    'min'   : min,
-                    'len'   : len,
-                    'pow'   : pow,
-                    'range' : range,
-                    'round' : round}
+    namespace |= {
+        'frames': len(nums), # total number of items (frames)
+        'x': None, # iterator for nums
+        '__builtins__': {
+            'sum': sum,
+            'abs': abs,
+            'max': max,
+            'min': min,
+            'len': len,
+            'pow': pow,
+            'range': range,
+            'round': round
+        }
     }
-                  
-                  
-
-    expr = compile(f"[({func}) for x in {nums}]", '<string>', 'exec')
-    for name in expr.co_names:
-        if name not in namespace:
-            raise NameError(f"{name} is defined")
-
     # only allow functions specified in namespace
-    return eval(expr, namespace)
+    return eval(f"[({func}) for x in {nums}]", namespace)
 
 
-def custom(frames: int, func: str = "", bound = (0, 1)):
+def custom(frames: int, func: str = "", bound: tuple[float, float] = (0, 1)):
     """
     Arbitrary custom weighting function
     """
@@ -147,7 +153,7 @@ def custom(frames: int, func: str = "", bound = (0, 1)):
     r = scale_range(frames, bound[0], bound[1])
     val = func_eval(func, r)
 
-    return scale_weights(val)
+    return normalize(val)
 
 
 def divide(frames: int, weights: Vector):
@@ -159,12 +165,13 @@ def divide(frames: int, weights: Vector):
     """
     r = scale_range(frames, 0, len(weights) - 0.1)
     val = [weights[int(r[x])] for x in range(frames)]
-    return scale_weights(val)
+
+    return normalize(val)
 
 
 def _warn_bound(bound: tuple, func: str):
     if len(bound) < 2:
         raise ValueError(f"{func}: bound must be a tuple of length 2, got {bound}")
-    if len(bound) > 2:
+    elif len(bound) > 2:
         w.warn(f"{func}: bound was given as a tuple of length {len(bound)}, only the first two values will be used",
                RuntimeWarning)
