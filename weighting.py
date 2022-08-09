@@ -39,6 +39,7 @@ def scale_range(n: int, start: Number, end: Number):
     >>> result == [start, ..., end]
     >>> len(result) == n
     """
+    if n <= 1: return [start] * n
     return [(x * (end - start) / (n - 1)) + start for x in range(n)]
 
 
