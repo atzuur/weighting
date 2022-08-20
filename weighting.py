@@ -13,33 +13,26 @@ Reference:
 import math
 import warnings as w
 from numbers import Number
-from typing import Sequence
-
-
-Vector = Sequence[Number]
-"""
-Sequence of any length containing numbers
-
-Has to support:
-    `len(seq)`, `seq.__getitem__()`, `for i in seq: ...`
-"""
 
 
 def normalize(weights: list):
     """
     Normalize a list of weights to sum to 1
     """
+    absmin = abs(min(weights))
+    pos_weights = [w + absmin + 1 for w in weights] # remove negative weights
     tot = sum(weights)
-    return [weight / tot for weight in weights]
+
+    return [w / tot for w in pos_weights]
 
 
 def scale_range(n: int, start: Number, end: Number):
     """
     Returns a list of `n` numbers from `start` to `end`
-    >>> result == [start, ..., end]
-    >>> len(result) == n
+    >>> res = scale_range(5, 0, 1)
+    >>> assert res[0] == 0 and res[-1] == 1
+    >>> assert len(res) == 5
     """
-    if n <= 1: return [start] * n
     return [(x * (end - start) / (n - 1)) + start for x in range(n)]
 
 
@@ -69,8 +62,8 @@ def equal(frames: int):
 def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
     """
     Args:
-        bound: `[a, b]` | x axis vector from `a` to `b`
-        apex: `μ`       | the position of the center of the peak, relative to x axis vector
+        bound: `[a, b]` | x axis list[float] from `a` to `b`
+        apex: `μ`       | the position of the center of the peak, relative to x axis list[float]
         std_dev: `σ`    | width of the "bell", higher == broader / flatter
 
     Reference:
@@ -78,7 +71,7 @@ def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple[fl
     """
     _warn_bound(bound, "gaussian")
 
-    r = scale_range(frames, bound[0], bound[1]) # x axis vector
+    r = scale_range(frames, bound[0], bound[1]) # x axis list[float]
 
     val = [1 / (math.sqrt(2 * math.pi) * std_dev) # normalization
            * math.exp(-((x - apex) / std_dev) ** 2 / 2) # gaussian function
@@ -114,7 +107,7 @@ def pyramid(frames: int):
     return normalize(val)
 
 
-def func_eval(func: str, nums: Vector):
+def func_eval(func: str, nums: list[float]):
     """
     Run an operation on a sequence of numbers
 
@@ -157,7 +150,7 @@ def custom(frames: int, func: str = "", bound: tuple[float, float] = (0, 1)):
     return normalize(val)
 
 
-def divide(frames: int, weights: Vector):
+def divide(frames: int, weights: list[float]):
     """
     Stretch the given array (weights) to a specific length (frames)
     Example: `frames = 10; weights = [1, 2]`
