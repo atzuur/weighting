@@ -2,10 +2,8 @@
 All weighting functions are of the following basic form:
     Args:
         frames: `int` | number of frames to generate
-
     Returns:
         `list[float]`: `[w1, w2, ..., wn]` | weights for each frame
-
 Reference:
     https://github.com/siveroo/HFR-Resampler
 """
@@ -33,6 +31,7 @@ def scale_range(n: int, start: Number, end: Number):
     >>> assert res[0] == 0 and res[-1] == 1
     >>> assert len(res) == 5
     """
+    if n <= 1: return [start] * n
     return [(x * (end - start) / (n - 1)) + start for x in range(n)]
 
 
@@ -62,16 +61,15 @@ def equal(frames: int):
 def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
     """
     Args:
-        bound: `[a, b]` | x axis list[float] from `a` to `b`
-        apex: `μ`       | the position of the center of the peak, relative to x axis list[float]
+        bound: `[a, b]` | x axis vector from `a` to `b`
+        apex: `μ`       | the position of the center of the peak, relative to x axis vector
         std_dev: `σ`    | width of the "bell", higher == broader / flatter
-
     Reference:
         https://en.wikipedia.org/wiki/Gaussian_function
     """
     _warn_bound(bound, "gaussian")
 
-    r = scale_range(frames, bound[0], bound[1]) # x axis list[float]
+    r = scale_range(frames, bound[0], bound[1]) # x axis vector
 
     val = [1 / (math.sqrt(2 * math.pi) * std_dev) # normalization
            * math.exp(-((x - apex) / std_dev) ** 2 / 2) # gaussian function
@@ -110,7 +108,6 @@ def pyramid(frames: int):
 def func_eval(func: str, nums: list[float]):
     """
     Run an operation on a sequence of numbers
-
     Names allowed in `func`:
         - Everything in the `math` module
         - `x`: the current number (frame) in the sequence
