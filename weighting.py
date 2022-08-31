@@ -1,7 +1,7 @@
 """
 All weighting functions are of the following basic form:
     Args:
-        frames: `int` | number of frames to generate
+        frames: `int` | number of frames to generate weights for
     Returns:
         `list[float]`: `[w1, w2, ..., wn]` | weights for each frame
 Reference:
