@@ -3,7 +3,7 @@ All weighting functions are of the following basic form:
     Args:
         frames: `int` | number of frames to generate weights for
     Returns:
-        `list[float]`: `[w1, w2, ..., wn]` | weights for each frame
+        `list[float]`: `[w1, w2, ..., wN]` | weights for each frame
 Reference:
     https://github.com/siveroo/HFR-Resampler
 """
@@ -17,11 +17,13 @@ def normalize(weights: list):
     """
     Normalize a list of weights to sum to 1
     """
-    absmin = abs(min(weights))
-    pos_weights = [w + absmin + 1 for w in weights] # remove negative weights
-    tot = sum(weights)
 
-    return [w / tot for w in pos_weights]
+    if min(weights) < 0:
+        absmin = abs(min(weights))
+        weights = [w + absmin + 1 for w in weights] # remove negative weights
+
+    tot = sum(weights)
+    return [w / tot for w in weights]
 
 
 def scale_range(n: int, start: Number, end: Number):
@@ -58,7 +60,7 @@ def equal(frames: int):
     return [1 / frames] * frames
 
 
-def gaussian(frames: int, apex: Number = 1, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
+def gaussian(frames: int, apex: Number = 2, std_dev: Number = 1, bound: tuple[float, float] = (0, 2)):
     """
     Args:
         bound: `[a, b]` | x axis vector from `a` to `b`
