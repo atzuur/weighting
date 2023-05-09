@@ -168,3 +168,6 @@ def _warn_bound(bound: tuple, func: str):
     elif len(bound) > 2:
         w.warn(f"{func}: bound was given as a tuple of length {len(bound)}, only the first two values will be used",
                RuntimeWarning)
+
+
+__all__ = [ascending, descending, equal, gaussian, gaussian_sym, pyramid, custom]
