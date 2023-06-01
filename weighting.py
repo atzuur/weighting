@@ -177,4 +177,4 @@ def _warn_bound(bound: tuple, func_name: str):
                RuntimeWarning)
 
 
-__all__ = [ascending, descending, equal, gaussian, gaussian_sym, pyramid, custom]
+__all__ = [ascending, descending, equal, gaussian, gaussian_sym, pyramid, custom, divide, enable_wizardry]
