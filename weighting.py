@@ -147,7 +147,7 @@ def custom(frames: int, func: str = "", bound: tuple[Number, Number] = (0, 1)):
     """
     Arbitrary custom weighting function
     """
-    _warn_bound(bound, func)
+    _warn_bound(bound, "custom")
 
     r = scale_range(frames, bound[0], bound[1])
     val = func_eval(func, r)
@@ -170,10 +170,10 @@ def divide(frames: int, weights: list[float]):
 
 def _warn_bound(bound: tuple, func_name: str):
     if len(bound) < 2:
-        raise ValueError(f"{func_name}: bound must be a tuple of length 2, got {bound}")
+        raise ValueError(f"{func_name}: bound must be a sequence of length 2, got {bound}")
     elif len(bound) > 2:
-        w.warn(f"{func_name}: bound was given as a tuple of length {len(bound)}, "
-               "only the first two values will be used",
+        w.warn(f"{func_name}: bound was given as a sequence of length {len(bound)}, "
+               f"only the first two values will be used (got {bound}))",
                RuntimeWarning)
 
 
