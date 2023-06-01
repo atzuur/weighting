@@ -120,7 +120,7 @@ def func_eval(func: str, nums: list[float]):
         - Everything in the `math` module
         - `x`: the current number (frame) in the sequence
         - `frames` (`len(nums)`): number of elements in the sequence (blended frames)
-        - The following built-in functions: `sum`, `abs`, `max`, `min`, `len`, `pow`, `range`, `round`
+        - The following built-in functions: `sum`, `abs`, `max`, `min`, `len`, `pow`, `map`, `range`, `round`
     """
 
     # math functions + math related builtins
@@ -135,6 +135,7 @@ def func_eval(func: str, nums: list[float]):
             'min': min,
             'len': len,
             'pow': pow,
+            'map': map,
             'range': range,
             'round': round
         }
