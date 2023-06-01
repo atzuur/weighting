@@ -13,13 +13,20 @@ import warnings as w
 from numbers import Number
 from typing import Iterable
 
+_wizardry_enabled = False
+
+
+def enable_wizardry():
+    global _wizardry_enabled
+    _wizardry_enabled = True
+
 
 def normalize(weights: Iterable[Number]):
     """
     Normalize a list of numbers to sum up to 1
     """
 
-    if min(weights) < 0:
+    if min(weights) < 0 and not _wizardry_enabled:
         abs_min = abs(min(weights))
         weights = [w + abs_min + 1 for w in weights] # remove negative weights
 
