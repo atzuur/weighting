@@ -14,7 +14,7 @@ from numbers import Number
 from typing import Iterable
 
 
-__all__ = ["ascending", "descending", "equal", "gaussian", "gaussian_sym", "pyramid", "custom", "divide", "enable_wizardry"]
+__all__ = ["ascending", "descending", "equal", "gaussian", "gaussian_sym", "pyramid", "divide", "enable_wizardry"]
 
 _wizardry_enabled = False
 
@@ -105,49 +105,6 @@ def pyramid(frames: int):
     """
     half = (frames - 1) / 2
     val = [half - abs(x - half) + 1 for x in range(frames)]
-
-    return normalize(val)
-
-
-def func_eval(func: str, nums: list[float]):
-    """
-    Run an operation on a sequence of numbers
-    Names allowed in `func`:
-        - Everything in the `math` module
-        - `x`: the current number (frame) in the sequence
-        - `frames` (`len(nums)`): number of elements in the sequence (blended frames)
-        - The following built-in functions: `sum`, `abs`, `max`, `min`, `len`, `pow`, `map`, `range`, `round`
-    """
-
-    # math functions + math related builtins
-    namespace = {k: v for k, v in math.__dict__.items() if not k.startswith("_")}
-    namespace |= {
-        'frames': len(nums), # total number of items (frames)
-        'x': None, # iterator for nums
-        '__builtins__': {
-            'sum': sum,
-            'abs': abs,
-            'max': max,
-            'min': min,
-            'len': len,
-            'pow': pow,
-            'map': map,
-            'range': range,
-            'round': round
-        }
-    }
-    # only allow functions specified in namespace
-    return eval(f"[({func}) for x in {nums}]", namespace)
-
-
-def custom(frames: int, func: str = "", bound: tuple[Number, Number] = (0, 1)):
-    """
-    Arbitrary custom weighting function
-    """
-    _warn_bound(bound, "custom")
-
-    r = scale_range(frames, bound[0], bound[1])
-    val = func_eval(func, r)
 
     return normalize(val)
 
