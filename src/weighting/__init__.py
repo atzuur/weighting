@@ -13,6 +13,9 @@ import warnings
 from numbers import Number
 from typing import Iterable
 
+
+__all__ = ["ascending", "descending", "equal", "gaussian", "gaussian_sym", "pyramid", "custom", "divide", "enable_wizardry"]
+
 _wizardry_enabled = False
 
 
@@ -169,6 +172,3 @@ def _warn_bound(bound: tuple, func_name: str):
         warnings.warn(f"{func_name}: bound was given as a sequence of length {len(bound)}, "
                       f"only the first two values will be used (got {bound}))",
                       RuntimeWarning)
-
-
-__all__ = [ascending, descending, equal, gaussian, gaussian_sym, pyramid, custom, divide, enable_wizardry]
