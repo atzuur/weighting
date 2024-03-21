@@ -9,7 +9,7 @@ Reference:
 """
 
 import math
-import warnings as w
+import warnings
 from numbers import Number
 from typing import Iterable
 
@@ -66,22 +66,21 @@ def equal(frames: int):
     return [1 / frames] * frames
 
 
-def gaussian(frames: int, apex: Number = 2, std_dev: Number = 1, bound: tuple[Number, Number] = (0, 2)):
+def gaussian(frames: int, mean: Number = 2, std_dev: Number = 1, bound: tuple[Number, Number] = (0, 2)):
     """
     Args:
-        bound: `[a, b]` | x axis vector from `a` to `b`
-        apex: `μ`       | the position of the center of the peak, relative to x axis vector
-        std_dev: `σ`    | width of the "bell", higher == broader/flatter
+        bound: `[a, b]` | range for the x-axis, from `a` to `b` (inclusive)
+        mean: `μ`       | the position of the center of the peak, relative to x-axis
+        std_dev: `σ`    | width of the "bell", higher <=> broader/flatter
     Reference:
         https://en.wikipedia.org/wiki/Gaussian_function
     """
     _warn_bound(bound, "gaussian")
 
-    r = scale_range(frames, bound[0], bound[1]) # x axis vector
+    x_axis = scale_range(frames, bound[0], bound[1])
 
-    val = [1 / (math.sqrt(2 * math.pi) * std_dev) # normalization
-           * math.exp(-((x - apex) / std_dev) ** 2 / 2) # gaussian function
-           for x in r]
+    val = [math.exp(-(x - mean) ** 2 / (2 * std_dev ** 2))
+           for x in x_axis]
 
     return normalize(val)
 
@@ -89,18 +88,12 @@ def gaussian(frames: int, apex: Number = 2, std_dev: Number = 1, bound: tuple[Nu
 def gaussian_sym(frames: int, std_dev: Number = 1, bound: tuple[Number, Number] = (0, 2)):
     """
     Same as `gaussian()` but symmetric;
-    the peak (apex) will always be at the center of the curve
+    the peak (mean) will always be at the center of the curve
     """
     _warn_bound(bound, "gaussian_sym")
 
     max_abs = max(map(abs, bound[:2]))
-    r = scale_range(frames, -max_abs, max_abs)
-
-    val = [1 / (math.sqrt(2 * math.pi) * std_dev)
-           * math.exp(-(x / std_dev) ** 2 / 2)
-           for x in r]
-
-    return normalize(val)
+    return gaussian(frames, mean=0, std_dev=std_dev, bound=(-max_abs, max_abs))
 
 
 def pyramid(frames: int):
@@ -173,9 +166,9 @@ def _warn_bound(bound: tuple, func_name: str):
     if len(bound) < 2:
         raise ValueError(f"{func_name}: bound must be a sequence of length 2, got {bound}")
     elif len(bound) > 2:
-        w.warn(f"{func_name}: bound was given as a sequence of length {len(bound)}, "
-               f"only the first two values will be used (got {bound}))",
-               RuntimeWarning)
+        warnings.warn(f"{func_name}: bound was given as a sequence of length {len(bound)}, "
+                      f"only the first two values will be used (got {bound}))",
+                      RuntimeWarning)
 
 
 __all__ = [ascending, descending, equal, gaussian, gaussian_sym, pyramid, custom, divide, enable_wizardry]
